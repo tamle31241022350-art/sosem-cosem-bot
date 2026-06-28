@@ -1,0 +1,30 @@
+name: SOSEM COSEM Bot
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Chạy mỗi 30 phút
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run bot
+        env:
+          UEH_EMAIL: ${{ secrets.UEH_EMAIL }}
+          UEH_PASSWORD: ${{ secrets.UEH_PASSWORD }}
+          GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
+        run: python main.py
