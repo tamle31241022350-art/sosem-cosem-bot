@@ -2,7 +2,7 @@ name: SOSEM COSEM Bot
 
 on:
   schedule:
-    - - cron: '*/5 * * * *'
+      - cron: '*/5 * * * *'
   workflow_dispatch:  # Cho phép chạy thủ công
 
 jobs:
