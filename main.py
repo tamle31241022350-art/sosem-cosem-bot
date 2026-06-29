@@ -1,5 +1,7 @@
 import os
 import json
+import base64
+from email.mime.text import MIMEText
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from playwright.sync_api import sync_playwright
@@ -30,6 +32,15 @@ def check_email_has_keyword():
     messages = results.get("messages", [])
     return len(messages) > 0
 
+def send_notification(activity_name):
+    service = get_gmail_service()
+    message = MIMEText(f"Bot đã tự động đăng ký thành công hoạt động: {activity_name}\n\nVào DRS để kiểm tra: https://drs.ueh.edu.vn/activity")
+    message["to"] = UEH_EMAIL
+    message["subject"] = f"✅ Đã đăng ký thành công: {activity_name}"
+    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    print(f"📧 Đã gửi email thông báo cho {UEH_EMAIL}")
+
 def register_on_drs():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -38,10 +49,12 @@ def register_on_drs():
         page.goto("https://drs.ueh.edu.vn/Account/LoginStudentUehCallback")
         page.wait_for_load_state("networkidle")
 
-        page.fill('#taikhoan', UEH_EMAIL)
-        page.fill('input[type="password"]', UEH_PASSWORD)
-        page.click('#btnLogin')
-        page.wait_for_load_state("networkidle")
+        # Login nếu cần
+        if page.locator("#taikhoan").count() > 0:
+            page.fill('#taikhoan', UEH_EMAIL)
+            page.fill('input[type="password"]', UEH_PASSWORD)
+            page.click('#btnLogin')
+            page.wait_for_load_state("networkidle")
 
         page.goto(DRS_URL)
         page.wait_for_load_state("networkidle")
@@ -51,6 +64,7 @@ def register_on_drs():
             for activity in activities:
                 try:
                     card = activity.locator("xpath=ancestor::div[contains(@class,'card')]")
+                    activity_name = activity.inner_text()
                     detail_btn = card.locator("text=Chi tiết")
                     detail_btn.click()
                     page.wait_for_load_state("networkidle")
@@ -60,9 +74,10 @@ def register_on_drs():
                         if register_btn.count() > 0:
                             register_btn.click()
                             page.wait_for_timeout(2000)
-                            print(f"✅ Đã đăng ký: {keyword}")
+                            print(f"✅ Đã đăng ký: {activity_name}")
+                            send_notification(activity_name)
                     else:
-                        print(f"❌ Full slot: {keyword}")
+                        print(f"❌ Full slot: {activity_name}")
 
                     page.go_back()
                     page.wait_for_load_state("networkidle")
