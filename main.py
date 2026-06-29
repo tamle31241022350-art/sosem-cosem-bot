@@ -35,8 +35,7 @@ def register_on_drs():
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
-        page.goto(DRS_URL)
-        page.click("a[href='/Account/LoginStudentUehCallback']")
+        page.goto("https://drs.ueh.edu.vn/Account/LoginStudentUehCallback")
         page.wait_for_load_state("networkidle")
 
         page.fill('input[type="email"]', UEH_EMAIL)
