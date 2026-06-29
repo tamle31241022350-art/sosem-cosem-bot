@@ -38,11 +38,9 @@ def register_on_drs():
         page.goto("https://drs.ueh.edu.vn/Account/LoginStudentUehCallback")
         page.wait_for_load_state("networkidle")
 
-        page.fill('input[type="email"]', UEH_EMAIL)
-        page.click('button:has-text("Tiếp tục")')
-        page.wait_for_timeout(1000)
+        page.fill('#taikhoan', UEH_EMAIL)
         page.fill('input[type="password"]', UEH_PASSWORD)
-        page.click('button[type="submit"]')
+        page.click('#btnLogin')
         page.wait_for_load_state("networkidle")
 
         page.goto(DRS_URL)
