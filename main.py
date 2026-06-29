@@ -36,7 +36,7 @@ def register_on_drs():
         page = browser.new_page()
 
         page.goto(DRS_URL)
-        page.click("text=Sinh viên, Học viên")
+        page.click("a[href='/Account/LoginStudentUehCallback']")
         page.wait_for_load_state("networkidle")
 
         page.fill('input[type="email"]', UEH_EMAIL)
