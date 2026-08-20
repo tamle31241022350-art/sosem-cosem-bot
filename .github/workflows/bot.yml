@@ -1,8 +1,7 @@
 name: SOSEM COSEM Bot
 
 on:
-  schedule:
-    - cron: '*/5 12-16 * * *'  # 7h-11h tối giờ VN (UTC+7)
+
   workflow_dispatch:
 
 jobs:
