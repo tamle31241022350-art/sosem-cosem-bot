@@ -1,29 +1,76 @@
 name: SOSEM COSEM Bot
 
 on:
+  schedule:
+    # ⚠️ GitHub Actions dùng giờ UTC. VN = UTC+7.
+    # 23:30 UTC  =  06:30 sáng VN (NGÀY HÔM SAU)
+    # Start sớm 1 tiếng để hấp thụ delay của GitHub scheduler.
+    - cron: "30 23 * * *"
 
+  # Cho phép bấm chạy tay để test
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Chạy thử (KHÔNG bấm nút đăng ký thật)"
+        type: boolean
+        default: true
+      target_time:
+        description: "Giờ mở đăng ký, giờ VN, dạng HH:MM"
+        type: string
+        default: "07:30"
+      window_minutes:
+        description: "Poll trong bao nhiêu phút kể từ giờ mở"
+        type: string
+        default: "60"
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+    # Job chạy 6:30 -> 8:30 = 120 phút. Để 180 cho an toàn,
+    # nhưng vẫn có trần để job lỗi không treo tới 6 tiếng (mặc định GitHub).
+    timeout-minutes: 180
+
+    env:
+      # Log in ra giờ VN cho dễ đọc, khỏi phải trừ 7 tiếng trong đầu
+      TZ: Asia/Ho_Chi_Minh
+      # Bắt Python in log ngay lập tức, không giữ trong buffer.
+      # Thiếu dòng này thì tab Actions trống trơn suốt 1 tiếng rồi mới xổ ra một lượt.
+      PYTHONUNBUFFERED: "1"
+
+      UEH_EMAIL: ${{ secrets.UEH_EMAIL }}
+      UEH_PASSWORD: ${{ secrets.UEH_PASSWORD }}
+      GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
+
+      # Khi chạy theo schedule thì inputs rỗng -> rơi về giá trị mặc định bên phải
+      TARGET_TIME: ${{ inputs.target_time || '07:30' }}
+      WINDOW_MINUTES: ${{ inputs.window_minutes || '60' }}
+      DRY_RUN: ${{ inputs.dry_run || 'false' }}
+
+      LEAD_SECONDS: "120"        # login trước giờ G 2 phút
+      POLL_FAST_SECONDS: "2"     # 10 phút đầu: quét mỗi 2 giây
+      POLL_SLOW_SECONDS: "10"    # sau đó: mỗi 10 giây
+      FAST_MINUTES: "10"
+      KEYWORDS: "SOSEM,COSEM"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Show clock (sanity check)
         run: |
-          pip install -r requirements.txt
-          playwright install chromium
-          playwright install-deps chromium
+          echo "UTC : $(date -u '+%Y-%m-%d %H:%M:%S')"
+          echo "VN  : $(date '+%Y-%m-%d %H:%M:%S %Z')"
 
       - name: Run bot
-        env:
-          UEH_EMAIL: ${{ secrets.UEH_EMAIL }}
-          UEH_PASSWORD: ${{ secrets.UEH_PASSWORD }}
-          GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
         run: python main.py
