@@ -5,7 +5,8 @@ Kiến trúc:
   1. Process start SỚM (6:30). Scheduler trễ bao nhiêu cũng không sao.
   2. Ngủ tới T - LEAD_SECONDS  (mặc định 7:28:00).
   3. Login DRS lúc đó -> session còn mới tinh, không bị hết hạn.
-  4. Từ T (7:30) poll lại mỗi POLL_SECONDS giây, trong WINDOW_MINUTES phút.
+  4. Từ T (7:30) poll lại: nhanh trong FAST_MINUTES phút đầu, sau đó chậm,
+     tổng cộng WINDOW_MINUTES phút.
   5. Thấy hoạt động khớp keyword -> đăng ký -> gửi mail báo -> thoát.
 """
 
@@ -193,7 +194,9 @@ def main():
     log(f"🚀 Bot start. Bây giờ là {datetime.now(VN):%H:%M:%S} (giờ VN)")
     log(f"   Giờ mở đăng ký : {target:%H:%M:%S}")
     log(f"   Login lúc      : {login_at:%H:%M:%S}")
-    log(f"   Poll tới       : {deadline:%H:%M:%S}  (mỗi {POLL_SECONDS}s)")
+    log(f"   Poll tới       : {deadline:%H:%M:%S}")
+    log(f"   Nhịp poll      : {POLL_FAST_SECONDS}s trong {FAST_MINUTES} phút đầu, "
+        f"sau đó {POLL_SLOW_SECONDS}s")
     log(f"   DRY_RUN        : {DRY_RUN}")
     log(f"   Keywords       : {', '.join(KEYWORDS)}")
 
