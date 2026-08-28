@@ -63,6 +63,13 @@ def log(msg):
 # ---------------------------------------------------------------- TIMING
 
 def compute_target():
+    """
+    TARGET_TIME nhận 2 dạng:
+      "07:30" -> mốc giờ cố định trong ngày (dùng cho lần chạy thật)
+      "now"   -> bây giờ + 30 giây (dùng để test tay, khỏi tính nhẩm)
+    """
+    if TARGET_TIME.strip().lower() == "now":
+        return datetime.now(VN) + timedelta(seconds=30)
     h, m = map(int, TARGET_TIME.split(":"))
     return datetime.now(VN).replace(hour=h, minute=m, second=0, microsecond=0)
 
@@ -202,6 +209,8 @@ def main():
 
     if datetime.now(VN) >= deadline:
         log("🛑 Job start quá trễ, đã qua cửa sổ đăng ký. Thoát.")
+        log(f"   Bây giờ {datetime.now(VN):%H:%M} > hạn chót {deadline:%H:%M}.")
+        log("   Nếu m đang bấm tay để test: đặt target_time = 'now'.")
         return 1
 
     sleep_until(login_at, "giờ login")
