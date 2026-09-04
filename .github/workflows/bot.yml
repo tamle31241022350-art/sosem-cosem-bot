@@ -1,13 +1,13 @@
 name: SOSEM COSEM Bot
 
 on:
-  schedule:
-    # ⚠️ GitHub Actions dùng giờ UTC. VN = UTC+7.
-    # 11:30 UTC  =  18:30 tối VN (CÙNG NGÀY — mục tiêu buổi tối không vượt qua nửa đêm)
-    # Start sớm 1 tiếng để hấp thụ delay của GitHub scheduler.
-    # ⚠️ Đây là lưới dự phòng — nguồn kích hoạt chính là cron-job.org (xem ghi chú dự án),
-    #    vì GitHub tự bắn 'schedule' có thể trễ hàng giờ với repo mới/ít hoạt động.
-    - cron: "30 11 * * *"
+  # ⚠️ KHÔNG dùng 'schedule:' của GitHub ở đây.
+  # Đã kiểm chứng: với repo mới/ít hoạt động như repo này, GitHub tự trễ
+  # lịch 'schedule' tới vài tiếng — trễ hơn cả deadline, nên chỉ tạo ra
+  # lỗi giả mỗi ngày mà không hề cứu được lần nào. Nguồn kích hoạt thật
+  # là cron-job.org gọi thẳng API workflow_dispatch (xem ghi chú dự án),
+  # vì dispatch tường minh chạy gần như tức thì, không đi qua hàng đợi
+  # 'schedule' bị nghẽn.
 
   # Cho phép bấm chạy tay để test
   workflow_dispatch:
